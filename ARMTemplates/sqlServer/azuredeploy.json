@@ -1,0 +1,44 @@
+    "$schema": "https://schema.managment.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sqlServerName": {
+            "type": "string"
+        },
+        "keyVaultName": {
+            "type": "string"
+        },
+        "sqlServerUsername": {
+            "type": "string"
+        },
+        "sqlServerPassword": {
+            "type": "securestring"
+        }
+    },
+    "resources": [
+        {
+            "type": " Microsoft.KeyVault/vaults",
+            "apiVersion": "2019-09-01",
+            "name": "[parameters('keyVaultName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "standard"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "enabledForTemplateDeployment": true
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers",
+            "name": "[parameters('sqlServerName')]",
+            "apiVersion": "2019-06-01-preview",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "administratorLogin": "[parameters('sqlServerUsername')]",
+                "administratorLoginPassword": "[parameters('sqlServerPassword')]"
+            }
+        }
+    ]
+}
+
