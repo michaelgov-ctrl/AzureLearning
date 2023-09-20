@@ -1,0 +1,24 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "resources": [
+        {
+            "type": "Microsoft.Sql/servers",
+            "kind": "v12.0",
+            "name": "testexampledatabase",
+            "apiVersion": "2015-05-01-preview",
+            "location":"East US",
+            "properties": {
+                "administratorLogin": "testuser",
+                "administratorLoginPassword": "1234@demo23",
+                "version": "12.0"
+            },
+        }
+    ],
+    "outputs": {
+        "sqlServerFQDN": {
+            "type": "string",
+            "value": "[reference('testexampledatabase').fullyQualifiedDomainName]"
+        }
+    }
+}
