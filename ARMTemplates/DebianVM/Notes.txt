@@ -2,4 +2,4 @@ https://learn.microsoft.com/en-us/azure/virtual-machines/linux/cli-ps-findimage
 
 https://learn.microsoft.com/en-us/azure/virtual-machines/linux/create-ssh-secured-vm-from-template
 
-https://learn.microsoft.com/en-us/azure/virtual-machines/windows/cli-ps-findimage
+https://learn.microsoft.com/en-us/azure/templates/microsoft.compute/virtualmachines?pivots=deployment-language-bicep
