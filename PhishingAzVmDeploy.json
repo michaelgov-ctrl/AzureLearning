@@ -1,0 +1,132 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "resourceName": {
+        "type": "string",
+        "metadata": {
+          "description": "Specifies a name for generating resource names."
+        }
+      },
+      "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Specifies the location for all resources."
+        }
+      },
+      "subnet": {
+        "type": "string",
+        "defaultValue": "/subscriptions/e5392685-5c0a-4f51-9ab5-0b09f528ca9b/resourceGroups/NOC-RG/providers/Microsoft.Network/virtualNetworks/NOC_Vnet/subnets/default",
+        "metadata": {
+          "description": "Specifies the virtual network subnet to create resources on. Default value is the NOC_Vnet to ensure shared Bastion access for VMs"
+        }
+      },
+      "vmSize": {
+        "type": "string",
+        "defaultValue": "Standard_D2s_v3",
+        "metadata": {
+          "description": "vm SKU"
+        }
+      },
+      "imageId": {
+        "type": "string",
+        "defaultValue": "/subscriptions/e5392685-5c0a-4f51-9ab5-0b09f528ca9b/resourceGroups/NOC-RG/providers/Microsoft.Compute/galleries/NOC_Gallery/images/NOC-ImageDefinition",
+        "metadata": {
+          "description": "Id of image for VM. Default Value is for the NOC Phishing Image in the NOC_Gallery"
+        }
+      },
+      "vmCount": {
+        "type": "int",
+        "defaultValue": 1,
+        "metadata": {
+          "description": "Number of VMs to create"
+        }
+      }
+    },
+    "variables": {
+      "vmName": "[concat('NOC_Phishing', parameters('resourceName'), '-VM')]",
+      "publicIPAddressName": "[concat('pip-', parameters('resourceName'))]",
+      "networkInterfaceName": "[concat('nic-', parameters('resourceName'))]"
+    },
+    "resources": [
+      {
+        "copy": {
+          "name": "publicIPAddressCopy",
+          "count": "[length(range(0, parameters('vmCount')))]"
+        },
+        "type": "Microsoft.Network/publicIPAddresses",
+        "apiVersion": "2020-05-01",
+        "name": "[format(concat(variables('publicIPAddressName'),'{0}'), copyIndex())]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "publicIPAllocationMethod": "Static"
+        },
+        "sku": {
+          "name": "Basic"
+        }
+      },
+      {
+        "copy": {
+          "name": "networkInterfaceCopy",
+          "count": "[length(range(0, parameters('vmCount')))]"
+        },
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2020-05-01",
+        "name": "[format(concat(variables('networkInterfaceName'),'{0}'), copyIndex())]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/publicIPAddresses', format(concat(variables('publicIPAddressName'),'{0}'), copyIndex()))]"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "publicIPAddress": {
+                  "id": "[resourceId('Microsoft.Network/publicIPAddresses', format(concat(variables('publicIPAddressName'),'{0}'), copyIndex()))]"
+                },
+                "subnet": {
+                  "id": "[parameters('subnet')]"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "copy": {
+          "name": "vmCopy",
+          "count": "[length(range(0, parameters('vmCount')))]"
+        },
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2021-11-01",
+        "name": "[format(concat(variables('vmName'),'{0}'), copyIndex())]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/networkInterfaces', format(concat(variables('networkInterfaceName'),'{0}'), copyIndex()))]"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[parameters('vmSize')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "id": "[parameters('imageId')]"
+            },
+            "osDisk": {
+              "createOption": "FromImage"
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', format(concat(variables('networkInterfaceName'),'{0}'), copyIndex()))]"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  
