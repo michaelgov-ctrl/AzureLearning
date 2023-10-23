@@ -22,8 +22,7 @@ function New-PhishingAzVmImage {
         [Parameter(Mandatory = $false)] 
         [string]$ImageVersion,
         [Parameter(Mandatory = $false)]
-        [switch]$NewGalleryRG
-        
+        [switch]$NewGalleryRG      
     )
 
     try {
